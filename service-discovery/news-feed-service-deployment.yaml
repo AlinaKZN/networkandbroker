@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: news-feed-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: news-feed-service
+  template:
+    metadata:
+      labels:
+        app: news-feed-service
+    spec:
+      containers:
+        - name: news-feed-service
+          image: your-docker-repo/news-feed-service:latest
+          ports:
+            - containerPort: 9091
