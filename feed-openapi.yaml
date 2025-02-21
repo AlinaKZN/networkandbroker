@@ -1,0 +1,106 @@
+openapi: 3.0.3
+info:
+  title: News Feed Service
+  version: 1.0.0
+  description: Сервис ленты новостей, который работает по WebSocket для получения обновлений в реальном времени.
+
+servers:
+  - url: wss://api.example.com/news-feed
+    description: Продакшн сервер
+
+paths:
+  /news-feed:
+    get:
+      summary: Подключение к ленте новостей через WebSocket
+      description: Подключиться к ленте новостей для получения обновлений в реальном времени.
+      operationId: connectToNewsFeed
+      responses:
+        '101':
+          description: Соединение установлено
+          headers:
+            Sec-WebSocket-Accept:
+              schema:
+                type: string
+              description: Значение заголовка Sec-WebSocket-Accept, подтверждающее успешное подключение.
+        'default':
+          description: Ошибка при установлении соединения
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Описание ошибки
+
+components:
+  schemas:
+    NewsItem:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Уникальный идентификатор новости.
+        title:
+          type: string
+          description: Заголовок новости.
+        content:
+          type: string
+          description: Содержимое новости.
+        publishedAt:
+          type: string
+          format: date-time
+          description: Дата и время публикации новости.
+        author:
+          type: string
+          description: Автор новости.
+
+  messages:
+    NewsFeedMessage:
+      description: Сообщение с новостью.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NewsItem'
+
+  callbacks:
+    newsFeedCallback:
+      '{$request.url}':
+        get:
+          summary: Получение новостей через WebSocket
+          description: Получение новостей в реальном времени через установленное WebSocket-соединение.
+          operationId: receiveNewsFeed
+          responses:
+            '200':
+              description: Успешное получение новостей
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/NewsItem'
+          callbacks:
+            newsFeedUpdate:
+              '{$request.url}':
+                get:
+                  summary: Обновление ленты новостей
+                  description: Получение обновлений ленты новостей.
+                  operationId: receiveNewsFeedUpdate
+                  responses:
+                    '200':
+                      description: Успешное получение обновления ленты новостей
+                      content:
+                        application/json:
+                          schema:
+                            $ref: '#/components/schemas/NewsItem'
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+security:
+  - ApiKeyAuth: []
+
+externalDocs:
+  description: Документация по WebSocket API
+  url: https://api.example.com/docs/websocket

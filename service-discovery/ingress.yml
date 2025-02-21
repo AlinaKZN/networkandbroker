@@ -1,0 +1,36 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-gateway
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/auth-url: "http://oauth2-proxy/oauth2/auth"
+    nginx.ingress.kubernetes.io/auth-signin: "http://oauth2-proxy/oauth2/start?rd=$request_uri"
+    nginx.ingress.kubernetes.io/enable-rate-limiting: "true"
+    nginx.ingress.kubernetes.io/rate-limiting-policy: "user=10r/s"
+spec:
+  rules:
+    - host: your-domain.com
+      http:
+        paths:
+          - path: /user-service
+            pathType: Prefix
+            backend:
+              service:
+                name: user-service
+                port:
+                  number: 80
+          - path: /statistics-service
+            pathType: Prefix
+            backend:
+              service:
+                name: statistics-service
+                port:
+                  number: 80
+          - path: /news-feed-service
+            pathType: Prefix
+            backend:
+              service:
+                name: news-feed-service
+                port:
+                  number: 80
